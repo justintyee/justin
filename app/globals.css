@@ -23,8 +23,11 @@
   color-scheme: dark;
 }
 
+/* System preference applies only until the user picks an explicit theme
+   (via ThemeToggle, which sets data-theme and wins regardless of OS
+   preference from then on). */
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme="dark"]) {
     --bg: #f7f5f6;
     --panel: #ffffff;
     --panel-2: #f7f5f6;
@@ -42,6 +45,25 @@
     --shadow: 4px 4px 0 rgba(37, 39, 41, 0.08);
     color-scheme: light;
   }
+}
+
+:root[data-theme="light"] {
+  --bg: #f7f5f6;
+  --panel: #ffffff;
+  --panel-2: #f7f5f6;
+  --hover: #efedee;
+  --border: #b9b7b9;
+  --border-soft: #eae8e9;
+  --chip: #efedee;
+  --text: #252729;
+  --muted: #747577;
+  --noproj: #b9b7b9;
+  --accent: #dc062b;
+  --accent-dark: #960014;
+  --accent-soft: #feebe8;
+  --green: #1f8f72;
+  --shadow: 4px 4px 0 rgba(37, 39, 41, 0.08);
+  color-scheme: light;
 }
 
 @theme inline {
@@ -106,6 +128,14 @@ textarea {
 }
 .ghost-btn:hover {
   background: var(--hover);
+}
+.ghost-btn.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  width: 34px;
+  height: 34px;
 }
 .ghost-btn:disabled {
   color: var(--noproj);

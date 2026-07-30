@@ -192,8 +192,8 @@ export function EventFormModal(props: EventFormModalProps) {
             </div>
           </div>
 
-          <div className="frow-inline flex gap-3">
-            <div className="frow flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="frow min-w-0 sm:flex-1">
               <label>Start</label>
               <input
                 type="datetime-local"
@@ -201,7 +201,7 @@ export function EventFormModal(props: EventFormModalProps) {
                 onChange={(e) => setStart(e.target.value)}
               />
             </div>
-            <div className="frow flex-1">
+            <div className="frow min-w-0 sm:flex-1">
               <label>End</label>
               <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
             </div>

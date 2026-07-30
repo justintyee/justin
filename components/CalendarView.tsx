@@ -4,7 +4,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import listPlugin from "@fullcalendar/list";
-import interactionPlugin, { EventResizeDoneArg } from "@fullcalendar/interaction";
+import interactionPlugin, { DateClickArg, EventResizeDoneArg } from "@fullcalendar/interaction";
 import {
   DateSelectArg,
   EventClickArg,
@@ -42,6 +42,15 @@ export function CalendarView({ onRequestCreate, onRequestEdit }: CalendarViewPro
 
   function handleSelect(arg: DateSelectArg) {
     onRequestCreate({ start: arg.start, end: arg.end });
+  }
+
+  // A drag-select is awkward on touch (needs a long-press), so a plain
+  // tap/click on a date or time cell also opens the create form directly,
+  // defaulting to a 1-hour slot starting there.
+  function handleDateClick(arg: DateClickArg) {
+    const start = arg.date;
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    onRequestCreate({ start, end });
   }
 
   async function persistMove(arg: EventDropArg | EventResizeDoneArg) {
@@ -111,6 +120,7 @@ export function CalendarView({ onRequestCreate, onRequestEdit }: CalendarViewPro
               }
         }
         titleFormat={isMobile ? { month: "short", day: "numeric" } : undefined}
+        allDaySlot={false}
         height="100%"
         selectable
         editable
@@ -118,6 +128,7 @@ export function CalendarView({ onRequestCreate, onRequestEdit }: CalendarViewPro
         events={calendarEvents}
         eventClick={handleEventClick}
         select={handleSelect}
+        dateClick={handleDateClick}
         eventDrop={persistMove}
         eventResize={persistMove}
         eventContent={renderEventContent}

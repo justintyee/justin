@@ -9,6 +9,7 @@ import { CategoryFilterBar } from "@/components/CategoryFilterBar";
 import { EventList } from "@/components/EventList";
 import { EventFormModal } from "@/components/EventFormModal";
 import { MobileTabSwitcher, MobileTab } from "@/components/MobileTabSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { formatDateLabel, toDateKey } from "@/lib/date";
 import { TripEvent } from "@/lib/types";
 
@@ -48,7 +49,6 @@ function TripLayout({ tripId, tripName }: { tripId: string; tripName: string }) 
   const [selectedEvent, setSelectedEvent] = useState<TripEvent | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<MobileTab>("calendar");
-  const [copied, setCopied] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   function handleSaved(info: { title: string; geocodeFailed: boolean }) {
@@ -75,12 +75,6 @@ function TripLayout({ tripId, tripName }: { tripId: string; tripName: string }) 
       ),
     [events, isVisible, selectedDate]
   );
-
-  async function handleCopyLink() {
-    await navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
 
   const sidePanel = (
     <div className="flex flex-col gap-3 lg:h-full lg:min-h-0">
@@ -142,9 +136,7 @@ function TripLayout({ tripId, tripName }: { tripId: string; tripName: string }) 
       <header className="app-header shrink-0 flex-wrap justify-between gap-3">
         <h1>{tripName}</h1>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={handleCopyLink} className="ghost-btn">
-            {copied ? "Link copied!" : "Copy share link"}
-          </button>
+          <ThemeToggle />
           <button
             type="button"
             onClick={() =>
