@@ -1,26 +1,529 @@
 @import "tailwindcss";
 
+/* Design tokens ported from the TRON Tracker app (timetracker.html) so this
+   app shares its brutalist look: sharp corners, hard offset shadows, Inter
+   for UI text, Roboto Mono for numbers/times/labels. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #100000;
+  --panel: #1e2022;
+  --panel-2: #252729;
+  --hover: #2e3033;
+  --border: #4b4d4f;
+  --border-soft: #2b2d30;
+  --chip: #38393c;
+  --text: #f7f5f6;
+  --muted: #a1a1a3;
+  --noproj: #606163;
+  --accent: #f6383c;
+  --accent-dark: #dc062b;
+  --accent-soft: #3a1216;
+  --green: #3dbb9a;
+  --shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+  --radius: 0px;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #f7f5f6;
+    --panel: #ffffff;
+    --panel-2: #f7f5f6;
+    --hover: #efedee;
+    --border: #b9b7b9;
+    --border-soft: #eae8e9;
+    --chip: #efedee;
+    --text: #252729;
+    --muted: #747577;
+    --noproj: #b9b7b9;
+    --accent: #dc062b;
+    --accent-dark: #960014;
+    --accent-soft: #feebe8;
+    --green: #1f8f72;
+    --shadow: 4px 4px 0 rgba(37, 39, 41, 0.08);
+    color-scheme: light;
   }
 }
 
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-roboto-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 var(--font-inter), "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* mono numerics: times, durations, coordinates */
+.mono {
+  font-family: var(--font-roboto-mono), Consolas, monospace;
+}
+
+/* ---------- header ---------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.app-header h1 {
+  font-family: var(--font-roboto-mono), Consolas, monospace;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ---------- buttons ---------- */
+.ghost-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 13px;
+  color: var(--text);
+  font-size: 13.5px;
+}
+.ghost-btn:hover {
+  background: var(--hover);
+}
+.ghost-btn:disabled {
+  color: var(--noproj);
+  cursor: not-allowed;
+}
+.ghost-btn:disabled:hover {
+  background: none;
+}
+
+.primary-btn {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 9px 18px;
+  font-weight: 600;
+  font-size: 13.5px;
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--text) 22%, transparent);
+}
+.primary-btn:hover {
+  background: var(--accent-dark);
+}
+.primary-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 color-mix(in srgb, var(--text) 22%, transparent);
+}
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.danger-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  padding: 9px 10px;
+  font-weight: 500;
+}
+.danger-btn:hover {
+  text-decoration: underline;
+}
+.danger-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 9px 10px;
+}
+.link-btn:hover {
+  color: var(--text);
+}
+
+/* ---------- segmented control ---------- */
+.seg {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.seg button {
+  border: none;
+  background: var(--panel);
+  padding: 6px 14px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.seg button:hover {
+  background: var(--hover);
+}
+.seg button.on {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---------- cards (side panel) ---------- */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+}
+.card-title {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-roboto-mono), Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* ---------- filter chips (styled like project rows) ---------- */
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  transition: none;
+}
+.filter-chip .dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: currentColor;
+}
+.filter-chip.on {
+  color: #fff;
+}
+
+/* ---------- activity list rows ---------- */
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: var(--panel);
+  text-align: left;
+  width: 100%;
+}
+.entry:hover {
+  background: var(--hover);
+}
+.entry .edot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+}
+.entry .etitle {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.entry .esub {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.entry .etime {
+  flex: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.kbd-hint {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.9;
+}
+.kbd-hint b {
+  font-family: var(--font-roboto-mono), Consolas, monospace;
+  background: var(--chip);
+  border-radius: var(--radius);
+  padding: 1px 6px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ---------- dialog ---------- */
+dialog.brutalist,
+.dlg {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.22);
+  background: var(--panel);
+  color: var(--text);
+}
+.dlg-head {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.dlg-body {
+  padding: 14px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dlg-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.frow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.frow label {
+  font-family: var(--font-roboto-mono), Consolas, monospace;
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.frow input,
+.frow select,
+.frow textarea {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+}
+.frow input::placeholder,
+.frow textarea::placeholder {
+  color: var(--muted);
+}
+.frow textarea {
+  resize: vertical;
+  min-height: 56px;
+}
+
+/* ---------- FullCalendar theming ---------- */
+.trip-calendar {
+  --pph: 48px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  height: 100%;
+  padding: 10px;
+}
+.trip-calendar .fc {
+  font-family: var(--font-inter), sans-serif;
+  color: var(--text);
+  height: 100%;
+}
+.trip-calendar .fc-toolbar-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.trip-calendar .fc-button {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius);
+  box-shadow: none;
+  text-transform: capitalize;
+  padding: 6px 12px;
+  font-size: 13.5px;
+}
+.trip-calendar .fc-button:hover {
+  background: var(--hover);
+}
+.trip-calendar .fc-button:focus,
+.trip-calendar .fc-button-primary:not(:disabled).fc-button-active:focus {
+  box-shadow: none;
+}
+.trip-calendar .fc-button-primary:not(:disabled).fc-button-active,
+.trip-calendar .fc-button-primary:not(:disabled):active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.trip-calendar .fc-button-group .fc-button {
+  border-radius: var(--radius);
+}
+.trip-calendar .fc-today-button {
+  text-transform: capitalize;
+}
+.trip-calendar .fc-scrollgrid,
+.trip-calendar .fc-scrollgrid table {
+  border-color: var(--border);
+}
+.trip-calendar .fc-col-header-cell {
+  background: var(--panel-2);
+  font-family: var(--font-roboto-mono), Consolas, monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.trip-calendar .fc-col-header-cell-cushion {
+  color: var(--text);
+  font-weight: 600;
+  padding: 8px 4px;
+}
+.trip-calendar .fc-day-today {
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.trip-calendar .fc-timegrid-slot-label-cushion {
+  font-family: var(--font-roboto-mono), Consolas, monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+.trip-calendar .fc-timegrid-slot {
+  border-color: var(--border-soft);
+}
+.trip-calendar .fc-timegrid-axis,
+.trip-calendar .fc-timegrid-divider {
+  border-color: var(--border);
+}
+.trip-calendar .fc-event {
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+.trip-calendar .fc-now-indicator-line {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+.trip-calendar .fc-now-indicator-arrow {
+  border-color: var(--accent);
+}
+.trip-calendar .fc-list-day-cushion {
+  background: var(--panel-2);
+}
+.trip-calendar a {
+  color: var(--text);
+}
+
+/* ---------- mobile: bigger touch targets, no toolbar overflow ---------- */
+@media (max-width: 640px) {
+  .ghost-btn,
+  .primary-btn,
+  .danger-btn,
+  .link-btn {
+    min-height: 44px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+  .seg button {
+    min-height: 44px;
+  }
+  .filter-chip {
+    min-height: 40px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  .entry {
+    min-height: 44px;
+  }
+  .frow input,
+  .frow select,
+  .frow textarea {
+    min-height: 44px;
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+
+  .trip-calendar {
+    padding: 6px;
+  }
+  .trip-calendar .fc-toolbar {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+  .trip-calendar .fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  .trip-calendar .fc-toolbar-chunk:first-child {
+    gap: 4px;
+  }
+  .trip-calendar .fc-toolbar-title {
+    font-size: 12px;
+    white-space: nowrap;
+    margin: 0 2px;
+  }
+  .trip-calendar .fc-button {
+    min-height: 36px;
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+  .trip-calendar .fc-button-group .fc-button {
+    padding: 4px 7px;
+  }
+  .trip-calendar .fc-today-button {
+    padding: 4px 8px;
+  }
+
+  /* List view: day headers and event titles must never clip — wrap
+     instead, since narrow phone widths can't fit "Wednesday" + "July 29"
+     (or a long title) on one line. */
+  .trip-calendar .fc-list-day-cushion {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+  .trip-calendar .fc-list-day-text,
+  .trip-calendar .fc-list-day-side-text {
+    float: none;
+    white-space: normal;
+  }
+  .trip-calendar .fc-list-event-title,
+  .trip-calendar .fc-list-event-time {
+    white-space: normal;
+    overflow: visible;
+  }
 }
