@@ -73,10 +73,18 @@ export function CalendarView({ onRequestCreate, onRequestEdit }: CalendarViewPro
     // List view has plenty of horizontal room and should show the full
     // title; only the narrow day/week/timegrid blocks need truncation.
     const isListView = arg.view.type.startsWith("list");
+    // arg.textColor is chosen for contrast against the event's own colored
+    // background (day/week/timegrid blocks). List view rows use the plain
+    // theme background instead, so that color can turn invisible there
+    // (e.g. white-on-white in light mode) — use the normal theme text
+    // color for list rows instead.
     return (
       <div
         className={`px-1 text-xs font-semibold ${isListView ? "" : "truncate"}`}
-        style={{ color: arg.textColor, whiteSpace: isListView ? "normal" : undefined }}
+        style={{
+          color: isListView ? "var(--text)" : arg.textColor,
+          whiteSpace: isListView ? "normal" : undefined,
+        }}
       >
         {arg.timeText && <span className="mono mr-1 opacity-85">{arg.timeText}</span>}
         {arg.event.title}
