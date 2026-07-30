@@ -20,7 +20,21 @@ export function AddressSearchInput({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isSearchable = address.trim().length >= 3;
+  // Editing an existing event pre-fills `address` from its saved location.
+  // Without this, just opening the edit form would immediately fire a
+  // search and pop the suggestions list open over the rest of the form —
+  // even for an address that was never successfully geocoded (no pin, so
+  // `selectedLabel` alone can't guard against it). Only search once the
+  // user actually types into the field this session, not from the initial
+  // mount value.
+  const [hasTyped, setHasTyped] = useState(false);
+
+  function handleChange(value: string) {
+    setHasTyped(true);
+    onAddressChange(value);
+  }
+
+  const isSearchable = hasTyped && address.trim().length >= 3 && !selectedLabel;
 
   useEffect(() => {
     if (!isSearchable) return;
@@ -52,7 +66,7 @@ export function AddressSearchInput({
       <input
         type="text"
         value={address}
-        onChange={(e) => onAddressChange(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         placeholder="Search an address in Mexico City..."
       />
       {selectedLabel && (
