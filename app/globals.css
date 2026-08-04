@@ -1,25 +1,26 @@
 @import "tailwindcss";
 
-/* Design tokens ported from the TRON Tracker app (timetracker.html) so this
-   app shares its brutalist look: sharp corners, hard offset shadows, Inter
-   for UI text, Roboto Mono for numbers/times/labels. */
+/* Dark theme: the same warm beige/tan palette as light mode, just inverted
+   in lightness, rather than the old unrelated near-black/red brutalist
+   scheme — the two themes should read as one design, not two apps. */
 :root {
-  --bg: #100000;
-  --panel: #1e2022;
-  --panel-2: #252729;
-  --hover: #2e3033;
-  --border: #4b4d4f;
-  --border-soft: #2b2d30;
-  --chip: #38393c;
-  --text: #f7f5f6;
-  --muted: #a1a1a3;
-  --noproj: #606163;
-  --accent: #f6383c;
-  --accent-dark: #dc062b;
-  --accent-soft: #3a1216;
+  --bg: #1c1712;
+  --panel: #2a2219;
+  --panel-2: #332a1f;
+  --hover: #3d3225;
+  --border: #5a4a35;
+  --border-soft: #3d3225;
+  --chip: #3d3225;
+  --text: #f0e6d5;
+  --muted: #b3a184;
+  --noproj: #5a4a35;
+  --accent: #b8860b;
+  --accent-dark: #8f6a08;
+  --accent-soft: #332813;
+  --danger: #e5533f;
   --green: #3dbb9a;
   --shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
-  --radius: 0px;
+  --radius: 12px;
   color-scheme: dark;
 }
 
@@ -28,41 +29,43 @@
    preference from then on). */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
-    --bg: #f7f5f6;
-    --panel: #ffffff;
-    --panel-2: #f7f5f6;
-    --hover: #efedee;
-    --border: #b9b7b9;
-    --border-soft: #eae8e9;
-    --chip: #efedee;
-    --text: #252729;
-    --muted: #747577;
-    --noproj: #b9b7b9;
-    --accent: #dc062b;
-    --accent-dark: #960014;
-    --accent-soft: #feebe8;
+    --bg: #f2e8d5;
+    --panel: #fffbf2;
+    --panel-2: #efe3c8;
+    --hover: #e8dabb;
+    --border: #d6c39c;
+    --border-soft: #ecdfc0;
+    --chip: #ecdfc0;
+    --text: #33291d;
+    --muted: #8a7a5f;
+    --noproj: #cbb896;
+    --accent: #a97d3f;
+    --accent-dark: #8a6530;
+    --accent-soft: #f1e4c9;
+    --danger: #c0392b;
     --green: #1f8f72;
-    --shadow: 4px 4px 0 rgba(37, 39, 41, 0.08);
+    --shadow: 4px 4px 0 rgba(58, 47, 34, 0.08);
     color-scheme: light;
   }
 }
 
 :root[data-theme="light"] {
-  --bg: #f7f5f6;
-  --panel: #ffffff;
-  --panel-2: #f7f5f6;
-  --hover: #efedee;
-  --border: #b9b7b9;
-  --border-soft: #eae8e9;
-  --chip: #efedee;
-  --text: #252729;
-  --muted: #747577;
-  --noproj: #b9b7b9;
-  --accent: #dc062b;
-  --accent-dark: #960014;
-  --accent-soft: #feebe8;
+  --bg: #f2e8d5;
+  --panel: #fffbf2;
+  --panel-2: #efe3c8;
+  --hover: #e8dabb;
+  --border: #d6c39c;
+  --border-soft: #ecdfc0;
+  --chip: #ecdfc0;
+  --text: #33291d;
+  --muted: #8a7a5f;
+  --noproj: #cbb896;
+  --accent: #a97d3f;
+  --accent-dark: #8a6530;
+  --accent-soft: #f1e4c9;
+  --danger: #c0392b;
   --green: #1f8f72;
-  --shadow: 4px 4px 0 rgba(37, 39, 41, 0.08);
+  --shadow: 4px 4px 0 rgba(58, 47, 34, 0.08);
   color-scheme: light;
 }
 
@@ -121,8 +124,8 @@ textarea {
 .ghost-btn {
   background: none;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 7px 13px;
+  border-radius: 999px;
+  padding: 5px 14px;
   color: var(--text);
   font-size: 13.5px;
 }
@@ -134,8 +137,15 @@ textarea {
   align-items: center;
   justify-content: center;
   padding: 8px;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
+}
+/* The map date-nav select is sized to match .ghost-btn.icon-btn's 32px so
+   the arrows and the pill sit flush at the same height. */
+.date-nav-select {
+  height: 32px;
+  padding: 0 10px;
+  box-sizing: border-box;
 }
 .ghost-btn:disabled {
   color: var(--noproj);
@@ -149,18 +159,17 @@ textarea {
   background: var(--accent);
   border: none;
   color: #fff;
-  border-radius: var(--radius);
-  padding: 9px 18px;
+  border-radius: 999px;
+  padding: 7px 18px;
   font-weight: 600;
   font-size: 13.5px;
-  box-shadow: 3px 3px 0 color-mix(in srgb, var(--text) 22%, transparent);
+  box-shadow: none;
 }
 .primary-btn:hover {
   background: var(--accent-dark);
 }
 .primary-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 color-mix(in srgb, var(--text) 22%, transparent);
+  transform: translate(1px, 1px);
 }
 .primary-btn:disabled {
   opacity: 0.5;
@@ -170,7 +179,7 @@ textarea {
 .danger-btn {
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--danger);
   padding: 9px 10px;
   font-weight: 500;
 }
@@ -197,13 +206,13 @@ textarea {
 .seg {
   display: flex;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 999px;
   overflow: hidden;
 }
 .seg button {
   border: none;
   background: var(--panel);
-  padding: 6px 14px;
+  padding: 5px 14px;
   font-size: 13.5px;
   color: var(--muted);
 }
@@ -235,28 +244,19 @@ textarea {
   text-transform: uppercase;
 }
 
-/* ---------- filter chips (styled like project rows) ---------- */
+/* ---------- filter chips (always color-filled; the "on" state is a
+   border ring rather than a fill/outline swap) ---------- */
 .filter-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   border-radius: var(--radius);
-  padding: 6px 12px;
-  font-size: 13px;
+  padding: 5px 9px;
+  font-size: 11.5px;
   font-weight: 600;
-  border: 1.5px solid transparent;
-  background: transparent;
-  color: var(--muted);
+  border: 2px solid transparent;
   transition: none;
-}
-.filter-chip .dot {
-  width: 8px;
-  height: 8px;
-  flex: none;
-  background: currentColor;
-}
-.filter-chip.on {
-  color: #fff;
+  white-space: nowrap;
 }
 
 /* ---------- activity list rows ---------- */
@@ -321,7 +321,7 @@ textarea {
 dialog.brutalist,
 .dlg {
   border: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: var(--radius);
   box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.22);
   background: var(--panel);
   color: var(--text);
@@ -377,6 +377,146 @@ dialog.brutalist,
 .frow textarea {
   resize: vertical;
   min-height: 56px;
+}
+
+/* ---------- custom calendar toolbar (drives both FullCalendar and
+   ClockDayView, replacing FullCalendar's built-in headerToolbar so the two
+   views can share one navigation bar) ---------- */
+.calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.calendar-toolbar-nav,
+.calendar-toolbar-views {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.calendar-toolbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  order: 3;
+  flex: 1 1 100%;
+  text-align: center;
+}
+@media (min-width: 641px) {
+  .calendar-toolbar-title {
+    order: 0;
+    flex: 1 1 auto;
+  }
+}
+.calendar-toolbar .ghost-btn {
+  padding: 4px 12px;
+  font-size: 12.5px;
+}
+.calendar-toolbar .ghost-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ---------- ClockDayView (circular 24h day view) ---------- */
+.clock-day-view {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+}
+.clock-day-svg {
+  width: 100%;
+  height: auto;
+  max-width: min(560px, 100%);
+  aspect-ratio: 1 / 1;
+  touch-action: none;
+  user-select: none;
+}
+.clock-day-hint {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  max-width: 360px;
+}
+@media (max-width: 640px) {
+  .clock-day-svg {
+    max-width: min(420px, 94vw);
+  }
+}
+
+/* ---------- WeekOverview (7-day glance strip, replaces the FullCalendar
+   week grid with a small activity "snapshot" around each day's number) ---------- */
+.week-overview {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  height: 100%;
+  align-content: center;
+  padding: 16px 10px;
+}
+.week-day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 6px 2px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.week-day-cell:hover {
+  background: var(--hover);
+}
+.week-day-svg {
+  width: 100%;
+  max-width: 84px;
+  aspect-ratio: 1 / 1;
+}
+.week-day-label {
+  font-family: var(--font-roboto-mono), Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+@media (max-width: 640px) {
+  .week-overview {
+    /* A single 7-wide row leaves each day too small to read no matter how
+       the per-cell sizing is tuned. Two columns, filled top-to-bottom
+       (Sun-Wed down the left, Thu-Sat down the right) instead of left-to-
+       right, gives every day a full-width row and room for a much bigger
+       snapshot circle. */
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(4, auto);
+    grid-auto-flow: column;
+    gap: 6px;
+    padding: 10px 8px;
+    overflow-x: visible;
+  }
+  .week-day-cell {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-soft);
+  }
+  .week-day-svg {
+    max-width: 76px;
+    flex: none;
+  }
+  .week-day-label {
+    font-size: 13px;
+  }
 }
 
 /* ---------- FullCalendar theming ---------- */
@@ -497,6 +637,10 @@ dialog.brutalist,
   }
   .entry {
     min-height: 44px;
+  }
+  .date-nav-select {
+    min-height: 44px;
+    height: auto;
   }
   .frow input,
   .frow select,

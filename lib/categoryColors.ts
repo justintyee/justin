@@ -12,12 +12,12 @@ import { Category } from "./types";
 // light background; a very dark color (e.g. the old dark gray) disappears
 // on a dark background. Mid-tones stay legible against both extremes.
 export const CATEGORY_COLORS: Record<Category, string> = {
-  daytrip: "#B45309", // amber (deeper shade — #D97706 dipped just under 3:1 contrast in light mode)
+  daytrip: "#A16207", // gold/olive-brown — shifted from the old amber, which read too close to cafe's orange
   museums: "#16A34A", // green
   food: "#E11D48", // rose
   attractions: "#2563EB", // blue
   cafe: "#C2410C", // deep orange
-  drinks: "#0E7490", // teal/cyan
+  drinks: "#0891B2", // brighter cyan — shifted from the old teal for clearer separation from the rest
   architecture: "#7C3AED", // violet
   stores: "#C026D3", // fuchsia
 };

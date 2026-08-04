@@ -8,11 +8,11 @@ export function CategoryFilterBar() {
   const { activeCategory, toggleCategory } = useFilter();
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5">
       {CATEGORIES.map((category) => {
         const isOn = activeCategory === category;
         const color = CATEGORY_COLORS[category];
-        const onTextColor = CATEGORY_TEXT_COLORS[category];
+        const textColor = CATEGORY_TEXT_COLORS[category];
         return (
           <button
             key={category}
@@ -20,12 +20,11 @@ export function CategoryFilterBar() {
             onClick={() => toggleCategory(category)}
             className={`filter-chip ${isOn ? "on" : ""}`}
             style={{
-              backgroundColor: isOn ? color : "transparent",
-              borderColor: color,
-              color: isOn ? onTextColor : color,
+              backgroundColor: color,
+              color: textColor,
+              borderColor: isOn ? "var(--text)" : "transparent",
             }}
           >
-            <span className="dot" style={{ background: isOn ? onTextColor : color }} />
             {CATEGORY_LABELS[category]}
           </button>
         );

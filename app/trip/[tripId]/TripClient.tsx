@@ -66,6 +66,21 @@ function TripLayout({ tripId, tripName }: { tripId: string; tripName: string }) 
     return Array.from(keys).sort();
   }, [events]);
 
+  // Steps through the same list of dates the dropdown offers (only days
+  // that actually have activities) rather than the raw calendar, so the
+  // arrows never land on an empty day with nothing to show on the map.
+  function shiftSelectedDate(direction: 1 | -1) {
+    if (availableDates.length === 0) return;
+    const currentIndex = selectedDate ? availableDates.indexOf(selectedDate) : -1;
+    let nextIndex: number;
+    if (currentIndex === -1) {
+      nextIndex = direction === 1 ? 0 : availableDates.length - 1;
+    } else {
+      nextIndex = Math.max(0, Math.min(availableDates.length - 1, currentIndex + direction));
+    }
+    setSelectedDate(availableDates[nextIndex]);
+  }
+
   const filteredEvents = useMemo(
     () =>
       events.filter(
@@ -89,25 +104,45 @@ function TripLayout({ tripId, tripName }: { tripId: string; tripName: string }) 
           <span className="card-title" style={{ margin: 0 }}>
             Map
           </span>
-          <select
-            value={selectedDate ?? ""}
-            onChange={(e) => setSelectedDate(e.target.value || null)}
-            style={{
-              background: "var(--bg)",
-              color: "var(--text)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius)",
-              padding: "4px 8px",
-              fontSize: "12px",
-            }}
-          >
-            <option value="">All dates</option>
-            {availableDates.map((d) => (
-              <option key={d} value={d}>
-                {formatDateLabel(d)}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="ghost-btn icon-btn"
+              onClick={() => shiftSelectedDate(-1)}
+              disabled={availableDates.length === 0}
+              aria-label="Previous day"
+            >
+              ‹
+            </button>
+            <select
+              value={selectedDate ?? ""}
+              onChange={(e) => setSelectedDate(e.target.value || null)}
+              className="date-nav-select"
+              style={{
+                background: "var(--bg)",
+                color: "var(--text)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius)",
+                fontSize: "12px",
+              }}
+            >
+              <option value="">All dates</option>
+              {availableDates.map((d) => (
+                <option key={d} value={d}>
+                  {formatDateLabel(d)}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="ghost-btn icon-btn"
+              onClick={() => shiftSelectedDate(1)}
+              disabled={availableDates.length === 0}
+              aria-label="Next day"
+            >
+              ›
+            </button>
+          </div>
         </div>
         <div className="min-h-0 flex-1">
           <MapPanel

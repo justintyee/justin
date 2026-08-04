@@ -80,7 +80,7 @@ export function AddressSearchInput({
         </p>
       )}
       {isSearchable && error && (
-        <p className="mt-1 text-xs" style={{ color: "var(--accent)" }}>
+        <p className="mt-1 text-xs" style={{ color: "var(--danger)" }}>
           {error}
         </p>
       )}

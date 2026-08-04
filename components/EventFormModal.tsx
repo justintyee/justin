@@ -228,7 +228,7 @@ export function EventFormModal(props: EventFormModalProps) {
           </div>
 
           {formError && (
-            <p className="text-sm" style={{ color: "var(--accent)" }}>
+            <p className="text-sm" style={{ color: "var(--danger)" }}>
               {formError}
             </p>
           )}
