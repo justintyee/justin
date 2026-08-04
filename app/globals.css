@@ -369,6 +369,15 @@ dialog.brutalist,
   background: var(--bg);
   color: var(--text);
   width: 100%;
+  box-sizing: border-box;
+}
+/* Some mobile browsers size the native datetime-local widget by its own
+   internal content rather than fully honoring width:100%, which can make
+   the Start/End fields look narrower than Title/Location/Notes even
+   though they share the same wrapper. Force it explicitly. */
+.frow input[type="datetime-local"] {
+  display: block;
+  min-width: 100%;
 }
 .frow input::placeholder,
 .frow textarea::placeholder {

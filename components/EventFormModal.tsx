@@ -238,7 +238,7 @@ export function EventFormModal(props: EventFormModalProps) {
 
           <div className="frow">
             <label>Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
           </div>
 
           {formError && (
