@@ -30,6 +30,21 @@ function fromLocalInputValue(value: string): string {
 export function EventFormModal(props: EventFormModalProps) {
   const { tripId, mode, onClose, onSaved } = props;
   const { addEvent, updateEvent, deleteEvent } = useEvents();
+  // Autofocusing the title field pops the mobile keyboard open the instant
+  // the dialog appears, before the user has even seen it — desktop doesn't
+  // have that problem, so keep the convenience there and only skip it on
+  // mobile, where the keyboard should appear solely on an explicit tap.
+  //
+  // This can't use the shared useIsMobile() hook: that hook deliberately
+  // starts at a safe `false` default and only corrects itself in an effect
+  // (to stay SSR-safe), but autoFocus only matters at the exact instant of
+  // mount — by the time the hook's effect corrects it, the browser has
+  // already focused the input and raised the keyboard. This modal only
+  // ever mounts client-side in response to a click, never during SSR, so
+  // reading matchMedia synchronously via a lazy initializer is safe here.
+  const [autoFocusTitle] = useState(
+    () => typeof window !== "undefined" && !window.matchMedia("(max-width: 640px)").matches
+  );
 
   const initialEvent = mode === "edit" ? props.initialEvent : undefined;
   const initialStart = mode === "edit" ? new Date(props.initialEvent.start_time) : props.initialRange.start;
@@ -161,7 +176,7 @@ export function EventFormModal(props: EventFormModalProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Dinner at Contramar"
-              autoFocus
+              autoFocus={autoFocusTitle}
             />
           </div>
 
