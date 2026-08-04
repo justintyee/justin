@@ -167,11 +167,11 @@ export function EventFormModal(props: EventFormModalProps) {
 
           <div className="frow">
             <label>Category</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {CATEGORIES.map((c) => {
                 const on = category === c;
                 const color = CATEGORY_COLORS[c];
-                const onTextColor = CATEGORY_TEXT_COLORS[c];
+                const textColor = CATEGORY_TEXT_COLORS[c];
                 return (
                   <button
                     key={c}
@@ -179,12 +179,11 @@ export function EventFormModal(props: EventFormModalProps) {
                     onClick={() => setCategory(c)}
                     className={`filter-chip ${on ? "on" : ""}`}
                     style={{
-                      backgroundColor: on ? color : "transparent",
-                      borderColor: color,
-                      color: on ? onTextColor : color,
+                      backgroundColor: color,
+                      color: textColor,
+                      borderColor: on ? "var(--text)" : "transparent",
                     }}
                   >
-                    <span className="dot" style={{ background: on ? onTextColor : color }} />
                     {CATEGORY_LABELS[c]}
                   </button>
                 );
