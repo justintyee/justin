@@ -662,6 +662,17 @@ dialog.brutalist,
     padding-top: 11px;
     padding-bottom: 11px;
   }
+  /* Capping width alone doesn't stop iOS Safari's datetime-local widget
+     from overflowing its box — its internal date/time segments have their
+     own minimum tap-friendly size that ignores CSS width/max-width once
+     the container is narrower than what "Aug 4, 2026 at 4:00 AM" needs
+     at the default font size. Shrinking the font shrinks that same
+     internal minimum, which is what actually keeps it inside the box. */
+  .frow input[type="datetime-local"] {
+    font-size: 13px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
 
   .trip-calendar {
     padding: 6px;
