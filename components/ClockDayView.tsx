@@ -187,11 +187,16 @@ export function ClockDayView({
   const LABEL_FONT_SIZE_HOURS = isMobile ? 17 : 20;
   const TICK_INNER = isMobile ? 106 : 145;
   const TICK_OUTER = isMobile ? 114 : 154;
-  const RING_START = isMobile ? 128 : 168;
   const RING_WIDTH = isMobile ? 46 : 30; // includes gap
   const ARC_STROKE = isMobile ? 38 : 24;
+  // Derived (rather than a separate hardcoded radius) so the ring's inner
+  // edge — which sits ARC_STROKE/2 inside RING_START once the stroke is
+  // drawn — always clears the tick/label band by RING_GAP, instead of a
+  // long event title's pill crowding or overlapping the hour labels.
+  const RING_GAP = 10;
+  const RING_START = TICK_OUTER + ARC_STROKE / 2 + RING_GAP;
   const HANDLE_HIT_RADIUS = isMobile ? 30 : 26; // generous touch target
-  const CREATE_PREVIEW_RADIUS = isMobile ? 121 : 161; // between the hour ticks and the first event ring
+  const CREATE_PREVIEW_RADIUS = (TICK_OUTER + RING_START) / 2; // between the hour ticks and the first event ring
   // Pill-shaped activity labels: sized to fit the full title rather than the
   // arc's own angular length, so short (1-2hr) events don't get their label
   // truncated — a fixed rect+text pair rides alongside the arc instead of
