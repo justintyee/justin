@@ -263,17 +263,46 @@ textarea {
 .entry {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 4px;
+  padding: 4px;
   border: 1px solid var(--border-soft);
   border-radius: var(--radius);
-  cursor: pointer;
   background: var(--panel);
-  text-align: left;
   width: 100%;
 }
 .entry:hover {
   background: var(--hover);
+}
+.entry-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  min-width: 0;
+}
+.entry-delete {
+  flex: none;
+  border-color: transparent;
+  color: var(--muted);
+}
+.entry-delete:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: none;
+}
+.entry-delete.confirming {
+  width: auto;
+  padding: 8px 12px;
+  color: var(--danger);
+  border-color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 .entry .edot {
   width: 9px;
