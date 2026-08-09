@@ -168,19 +168,34 @@ export function CalendarView({ onRequestCreate, onRequestEdit }: CalendarViewPro
     // List view has plenty of horizontal room and should show the full
     // title; only the narrow day/week/timegrid blocks need truncation.
     const isListView = arg.view.type.startsWith("list");
-    // arg.textColor is chosen for contrast against the event's own colored
-    // background (day/week/timegrid blocks). List view rows use the plain
-    // theme background instead, so that color can turn invisible there
-    // (e.g. white-on-white in light mode) — use the normal theme text
-    // color for list rows instead.
+    // dayGridMonth renders events in FullCalendar's compact "dot" style —
+    // a transparent background, same as list rows — rather than a block
+    // filled with the event's own color. arg.textColor is only chosen for
+    // contrast against that colored block, so on month/list it can turn
+    // invisible against the plain theme background (e.g. white-on-cream in
+    // light mode); use the normal theme text color there instead.
+    const isDotStyle = isListView || arg.view.type === "dayGridMonth";
+    // Overriding eventContent replaces FullCalendar's own dot marker too,
+    // so month view loses its category-color cue entirely unless it's
+    // drawn back in here (list view's dot is separate native markup this
+    // override doesn't touch, so it doesn't need one).
+    const showDot = arg.view.type === "dayGridMonth";
     return (
       <div
-        className={`px-1 text-xs font-semibold ${isListView ? "" : "truncate"}`}
+        className={`px-1 text-xs font-semibold ${isListView ? "" : "truncate"} ${
+          showDot ? "flex items-center gap-1" : ""
+        }`}
         style={{
-          color: isListView ? "var(--text)" : arg.textColor,
+          color: isDotStyle ? "var(--text)" : arg.textColor,
           whiteSpace: isListView ? "normal" : undefined,
         }}
       >
+        {showDot && (
+          <span
+            className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+            style={{ backgroundColor: arg.event.backgroundColor }}
+          />
+        )}
         {arg.timeText && <span className="mono mr-1 opacity-85">{arg.timeText}</span>}
         {arg.event.title}
       </div>
