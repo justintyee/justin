@@ -26,14 +26,23 @@ interface ClockDayViewProps {
   onUpdateEvent: (id: string, patch: { start_time: string; end_time: string }) => Promise<void>;
 }
 
+// The dial only spans [DAY_VIEW_START_HOUR, 24) instead of the full day —
+// dropping the early-morning hours (when nothing's usually scheduled) means
+// the remaining hours each get a bigger share of the 360°, so afternoon/
+// evening activity arcs draw noticeably larger.
+const DAY_VIEW_START_HOUR = 9;
+const DAY_VIEW_HOURS = 24 - DAY_VIEW_START_HOUR;
+
+// `hours` here is hours-since-dayStart (i.e. since DAY_VIEW_START_HOUR),
+// not hours-since-midnight.
 function angleForHours(hours: number): number {
-  return (hours / 24) * 360 - 90;
+  return (hours / DAY_VIEW_HOURS) * 360 - 90;
 }
 
 function hoursForAngle(angleDeg: number): number {
-  let hours = ((angleDeg + 90) / 360) * 24;
-  hours = hours % 24;
-  if (hours < 0) hours += 24;
+  let hours = ((angleDeg + 90) / 360) * DAY_VIEW_HOURS;
+  hours = hours % DAY_VIEW_HOURS;
+  if (hours < 0) hours += DAY_VIEW_HOURS;
   return hours;
 }
 
@@ -57,9 +66,9 @@ function describeArc(radius: number, startAngleDeg: number, endAngleDeg: number)
   return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`;
 }
 
-// Hours-since-midnight for the given date's local start/end, clamped to
-// [0, 24] so events don't draw outside the ring or wrap around oddly when
-// they start before or run past the viewed day.
+// Hours-since-dayStart for the given date's local start/end, clamped to
+// [0, DAY_VIEW_HOURS] so events don't draw outside the ring or wrap around
+// oddly when they start before or run past the viewed window.
 function clampedHourRange(
   startIso: string,
   endIso: string,
@@ -101,9 +110,10 @@ function assignRings(
   return ringOf;
 }
 
-const HOUR_LABELS = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22].map((h) => ({
-  hours: h,
-  label: h === 0 ? "12a" : h === 12 ? "12p" : h < 12 ? `${h}a` : `${h - 12}p`,
+const HOUR_LABELS = [10, 12, 14, 16, 18, 20, 22].map((absoluteHour) => ({
+  hours: absoluteHour - DAY_VIEW_START_HOUR,
+  label:
+    absoluteHour === 12 ? "12p" : absoluteHour < 12 ? `${absoluteHour}a` : `${absoluteHour - 12}p`,
 }));
 
 // Sized to fit the (possibly truncated) title text, independent of the
@@ -173,7 +183,7 @@ export function ClockDayView({
   const MINUTE_HAND_LENGTH = isMobile ? 65 : 90;
   const SECOND_HAND_LENGTH = isMobile ? 76 : 105;
   const CENTER_PIVOT_RADIUS = isMobile ? 5 : 6;
-  const LABEL_RADIUS = isMobile ? 84 : 118; // 24h hour numbers sit inside the face, near its rim
+  const LABEL_RADIUS = isMobile ? 84 : 118; // hour numbers sit inside the face, near its rim
   const LABEL_FONT_SIZE_HOURS = isMobile ? 17 : 20;
   const TICK_INNER = isMobile ? 106 : 145;
   const TICK_OUTER = isMobile ? 114 : 154;
@@ -206,8 +216,11 @@ export function ClockDayView({
     };
   }, []);
 
-  const dayStart = useMemo(() => new Date(date.getFullYear(), date.getMonth(), date.getDate()), [date]);
-  const dayEnd = useMemo(() => new Date(dayStart.getTime() + 24 * 3600000), [dayStart]);
+  const dayStart = useMemo(
+    () => new Date(date.getFullYear(), date.getMonth(), date.getDate(), DAY_VIEW_START_HOUR, 0, 0),
+    [date]
+  );
+  const dayEnd = useMemo(() => new Date(dayStart.getTime() + DAY_VIEW_HOURS * 3600000), [dayStart]);
 
   const isToday = now !== null && toDateKey(now) === toDateKey(date);
 
@@ -313,9 +326,9 @@ export function ClockDayView({
 
       if (drag.mode === "move") {
         let deltaHours = hours - drag.startPointerHours;
-        // Moving across the 24h/0h seam should still feel continuous.
-        if (deltaHours > 12) deltaHours -= 24;
-        if (deltaHours < -12) deltaHours += 24;
+        // Moving across the dial's start/end seam should still feel continuous.
+        if (deltaHours > DAY_VIEW_HOURS / 2) deltaHours -= DAY_VIEW_HOURS;
+        if (deltaHours < -DAY_VIEW_HOURS / 2) deltaHours += DAY_VIEW_HOURS;
         const newStart = new Date(drag.originalStart.getTime() + deltaHours * 3600000);
         const newEnd = new Date(drag.originalEnd.getTime() + deltaHours * 3600000);
         setPreview({ id: drag.event.id, start: newStart, end: newEnd });
@@ -407,9 +420,9 @@ export function ClockDayView({
       }
 
       let delta = createDrag.currentHours - createDrag.anchorHours;
-      // Dragging across the 24h/0h seam should still feel continuous.
-      if (delta > 12) delta -= 24;
-      if (delta < -12) delta += 24;
+      // Dragging across the dial's start/end seam should still feel continuous.
+      if (delta > DAY_VIEW_HOURS / 2) delta -= DAY_VIEW_HOURS;
+      if (delta < -DAY_VIEW_HOURS / 2) delta += DAY_VIEW_HOURS;
       const otherHours = createDrag.anchorHours + delta;
       const lowHours = Math.round(Math.min(createDrag.anchorHours, otherHours) / CREATE_SNAP_HOURS) * CREATE_SNAP_HOURS;
       const highHours = Math.round(Math.max(createDrag.anchorHours, otherHours) / CREATE_SNAP_HOURS) * CREATE_SNAP_HOURS;
@@ -432,15 +445,21 @@ export function ClockDayView({
   const createPreviewRange = useMemo(() => {
     if (!createDrag || !createDrag.moved) return null;
     let delta = createDrag.currentHours - createDrag.anchorHours;
-    if (delta > 12) delta -= 24;
-    if (delta < -12) delta += 24;
+    if (delta > DAY_VIEW_HOURS / 2) delta -= DAY_VIEW_HOURS;
+    if (delta < -DAY_VIEW_HOURS / 2) delta += DAY_VIEW_HOURS;
     const otherHours = createDrag.anchorHours + delta;
-    const startHours = Math.max(0, Math.min(24, Math.min(createDrag.anchorHours, otherHours)));
-    const endHours = Math.max(0, Math.min(24, Math.max(createDrag.anchorHours, otherHours)));
+    const startHours = Math.max(0, Math.min(DAY_VIEW_HOURS, Math.min(createDrag.anchorHours, otherHours)));
+    const endHours = Math.max(0, Math.min(DAY_VIEW_HOURS, Math.max(createDrag.anchorHours, otherHours)));
     return { startHours, endHours };
   }, [createDrag]);
 
-  const nowAngle = isToday ? angleForHours(now!.getHours() + now!.getMinutes() / 60) : null;
+  // Hidden before DAY_VIEW_START_HOUR: that stretch of the day isn't drawn
+  // on this dial at all, so there's no angle to point the indicator at.
+  const nowAbsoluteHours = now ? now.getHours() + now.getMinutes() / 60 : null;
+  const nowAngle =
+    isToday && nowAbsoluteHours !== null && nowAbsoluteHours >= DAY_VIEW_START_HOUR
+      ? angleForHours(nowAbsoluteHours - DAY_VIEW_START_HOUR)
+      : null;
 
   const hourAngle = now
     ? analogAngle((now.getHours() % 12) + now.getMinutes() / 60 + now.getSeconds() / 3600, 12)
@@ -497,8 +516,8 @@ export function ClockDayView({
         <circle cx={CENTER} cy={CENTER} r={CENTER_PIVOT_RADIUS} fill="var(--accent)" />
 
         {/* hour ticks + labels */}
-        {Array.from({ length: 24 }, (_, h) => h).map((h) => {
-          const angle = angleForHours(h);
+        {Array.from({ length: DAY_VIEW_HOURS }, (_, i) => DAY_VIEW_START_HOUR + i).map((h) => {
+          const angle = angleForHours(h - DAY_VIEW_START_HOUR);
           const inner = pointOnCircle(angle, TICK_INNER);
           const outer = pointOnCircle(angle, TICK_OUTER);
           return (
