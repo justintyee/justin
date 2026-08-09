@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EventsProvider, useEvents } from "@/context/EventsContext";
 import { FilterProvider, useFilter } from "@/context/FilterContext";
 import { CalendarView } from "@/components/CalendarView";
@@ -32,6 +32,15 @@ type ModalState =
   | { mode: "edit"; event: TripEvent }
   | null;
 
+const DEFAULT_SIDEBAR_WIDTH = 380;
+const MIN_SIDEBAR_WIDTH = 280;
+const MAX_SIDEBAR_WIDTH = 640;
+const SIDEBAR_WIDTH_STORAGE_KEY = "sidebarWidth";
+
+function clampSidebarWidth(width: number): number {
+  return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
+}
+
 export function TripClient({ tripId, tripName }: { tripId: string; tripName: string }) {
   return (
     <EventsProvider tripId={tripId}>
@@ -50,6 +59,56 @@ function TripLayout({ tripId, tripName }: { tripId: string; tripName: string }) 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<MobileTab>("calendar");
   const [toast, setToast] = useState<string | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+  const mainRef = useRef<HTMLDivElement>(null);
+  // Guards the persist effect below from firing with the default width
+  // before the stored width has even been read — otherwise that first,
+  // pre-load write clobbers whatever was saved from a previous visit.
+  const hasLoadedWidthRef = useRef(false);
+
+  // Deferred one tick (not read synchronously in a lazy useState
+  // initializer, nor set synchronously in the effect body) since this
+  // component renders during SSR — no localStorage there — and must
+  // match on the client's first render too. See the matching `now`
+  // pattern in ClockDayView.
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const stored = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+      const parsed = stored ? Number(stored) : NaN;
+      if (!Number.isNaN(parsed)) setSidebarWidth(clampSidebarWidth(parsed));
+      hasLoadedWidthRef.current = true;
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (!isResizingSidebar) return;
+
+    function handleMove(e: PointerEvent) {
+      const main = mainRef.current;
+      if (!main) return;
+      const rect = main.getBoundingClientRect();
+      // Sidebar hugs the right edge, so its width is just the distance
+      // from the pointer back to that edge.
+      setSidebarWidth(clampSidebarWidth(rect.right - e.clientX));
+    }
+    function handleUp() {
+      setIsResizingSidebar(false);
+    }
+
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    };
+  }, [isResizingSidebar]);
+
+  useEffect(() => {
+    if (!hasLoadedWidthRef.current) return;
+    window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(sidebarWidth));
+  }, [sidebarWidth]);
 
   function handleSaved(info: { title: string; geocodeFailed: boolean }) {
     if (!info.geocodeFailed) return;
@@ -191,12 +250,28 @@ function TripLayout({ tripId, tripName }: { tripId: string; tripName: string }) 
         <MobileTabSwitcher active={mobileTab} onChange={setMobileTab} />
       </div>
 
-      <main className="min-h-0 flex-1 gap-4 p-4 lg:grid lg:grid-cols-[1fr_380px]">
+      <main
+        ref={mainRef}
+        className="min-h-0 flex-1 gap-4 p-4 lg:grid"
+        style={{ gridTemplateColumns: `1fr 12px ${sidebarWidth}px` }}
+      >
         <div className={`h-full min-h-0 ${mobileTab === "calendar" ? "block" : "hidden"} lg:block`}>
           <CalendarView
             onRequestCreate={(range) => setModal({ mode: "create", range })}
             onRequestEdit={(event) => setModal({ mode: "edit", event })}
           />
+        </div>
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize sidebar"
+          className="resize-divider hidden lg:block"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            setIsResizingSidebar(true);
+          }}
+        >
+          <div className={`resize-divider-line${isResizingSidebar ? " active" : ""}`} />
         </div>
         <div
           className={`${mobileTab === "map" ? "block" : "hidden"} lg:block lg:h-full lg:min-h-0`}

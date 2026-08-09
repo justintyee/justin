@@ -224,6 +224,25 @@ textarea {
   color: #fff;
 }
 
+/* ---------- resizable sidebar divider ---------- */
+.resize-divider {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  cursor: col-resize;
+  touch-action: none;
+}
+.resize-divider-line {
+  width: 2px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--border);
+}
+.resize-divider:hover .resize-divider-line,
+.resize-divider-line.active {
+  background: var(--accent);
+}
+
 /* ---------- cards (side panel) ---------- */
 .card {
   background: var(--panel);
