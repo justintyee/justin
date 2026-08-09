@@ -54,6 +54,11 @@ export function EventFormModal(props: EventFormModalProps) {
   const [category, setCategory] = useState<Category>(initialEvent?.category ?? "food");
   const [start, setStart] = useState(toLocalInputValue(initialStart));
   const [end, setEnd] = useState(toLocalInputValue(initialEnd));
+  // Once the user has touched End directly, their choice sticks — only
+  // keep re-deriving it from Start while it's still at whatever default
+  // the caller passed in. Editing mode leaves an existing event's end
+  // alone regardless, so it starts "touched".
+  const [endTouched, setEndTouched] = useState(mode === "edit");
   const [address, setAddress] = useState(initialEvent?.address ?? "");
   const [placeName, setPlaceName] = useState<string | null>(initialEvent?.place_name ?? null);
   const [lat, setLat] = useState<number | null>(initialEvent?.lat ?? null);
@@ -69,6 +74,21 @@ export function EventFormModal(props: EventFormModalProps) {
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
+
+  function handleStartChange(value: string) {
+    setStart(value);
+    if (!endTouched) {
+      const newStart = new Date(value);
+      if (!isNaN(newStart.getTime())) {
+        setEnd(toLocalInputValue(new Date(newStart.getTime() + 60 * 60 * 1000)));
+      }
+    }
+  }
+
+  function handleEndChange(value: string) {
+    setEnd(value);
+    setEndTouched(true);
+  }
 
   function handleSelectCandidate(candidate: GeocodeCandidate) {
     setLat(candidate.lat);
@@ -212,12 +232,16 @@ export function EventFormModal(props: EventFormModalProps) {
               <input
                 type="datetime-local"
                 value={start}
-                onChange={(e) => setStart(e.target.value)}
+                onChange={(e) => handleStartChange(e.target.value)}
               />
             </div>
             <div className="frow min-w-0 sm:flex-1">
               <label>End</label>
-              <input type="datetime-local" value={end} onChange={(e) => setEnd(e.target.value)} />
+              <input
+                type="datetime-local"
+                value={end}
+                onChange={(e) => handleEndChange(e.target.value)}
+              />
             </div>
           </div>
 
