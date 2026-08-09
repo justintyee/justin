@@ -110,11 +110,13 @@ function assignRings(
   return ringOf;
 }
 
-const HOUR_LABELS = [10, 12, 14, 16, 18, 20, 22].map((absoluteHour) => ({
-  hours: absoluteHour - DAY_VIEW_START_HOUR,
-  label:
-    absoluteHour === 12 ? "12p" : absoluteHour < 12 ? `${absoluteHour}a` : `${absoluteHour - 12}p`,
-}));
+const HOUR_LABELS = Array.from({ length: DAY_VIEW_HOURS }, (_, i) => DAY_VIEW_START_HOUR + i).map(
+  (absoluteHour) => ({
+    hours: absoluteHour - DAY_VIEW_START_HOUR,
+    label:
+      absoluteHour === 12 ? "12p" : absoluteHour < 12 ? `${absoluteHour}a` : `${absoluteHour - 12}p`,
+  })
+);
 
 // Sized to fit the (possibly truncated) title text, independent of the
 // arc's own angular length — this is what lets a 1-2hr event's label show
@@ -183,8 +185,11 @@ export function ClockDayView({
   const MINUTE_HAND_LENGTH = isMobile ? 65 : 90;
   const SECOND_HAND_LENGTH = isMobile ? 76 : 105;
   const CENTER_PIVOT_RADIUS = isMobile ? 5 : 6;
-  const LABEL_RADIUS = isMobile ? 84 : 118; // hour numbers sit inside the face, near its rim
-  const LABEL_FONT_SIZE_HOURS = isMobile ? 17 : 20;
+  const LABEL_RADIUS = isMobile ? 90 : 118; // hour numbers sit inside the face, near its rim
+  // All 15 hours get a label now, not just every other one, so there's much
+  // less arc length per label than before — smaller, especially on the
+  // already-tight mobile face, to keep adjacent hours from overlapping.
+  const LABEL_FONT_SIZE_HOURS = isMobile ? 12 : 16;
   const TICK_INNER = isMobile ? 106 : 145;
   const TICK_OUTER = isMobile ? 114 : 154;
   const RING_WIDTH = isMobile ? 46 : 30; // includes gap
