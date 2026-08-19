@@ -8,6 +8,13 @@ import { TripEvent } from "@/lib/types";
 
 const MEXICO_CITY_CENTER: [number, number] = [19.4326, -99.1332];
 
+// `lat != null` alone lets NaN through (NaN != null is true), and Leaflet
+// throws "Invalid LatLng object" on NaN — an uncaught throw here crashes
+// the whole page, not just the map, since nothing catches it upstream.
+function hasValidCoords(event: TripEvent): event is TripEvent & { lat: number; lng: number } {
+  return Number.isFinite(event.lat) && Number.isFinite(event.lng);
+}
+
 function pinIcon(color: string) {
   return L.divIcon({
     className: "",
@@ -31,9 +38,7 @@ function FitBoundsOnChange({ events }: { events: TripEvent[] }) {
   const map = useMap();
 
   useEffect(() => {
-    const withCoords = events.filter(
-      (e): e is TripEvent & { lat: number; lng: number } => e.lat != null && e.lng != null
-    );
+    const withCoords = events.filter(hasValidCoords);
     if (withCoords.length === 0) return;
 
     if (withCoords.length === 1) {
@@ -52,7 +57,7 @@ function FocusOnSelected({ event }: { event: TripEvent | null }) {
   const map = useMap();
 
   useEffect(() => {
-    if (!event || event.lat == null || event.lng == null) return;
+    if (!event || !hasValidCoords(event)) return;
     map.flyTo([event.lat, event.lng], Math.max(map.getZoom(), 15), { duration: 0.6 });
   }, [event, map]);
 
@@ -82,10 +87,7 @@ interface MapPanelProps {
 }
 
 export function MapPanel({ events, onMarkerClick, focusEvent = null }: MapPanelProps) {
-  const pinned = useMemo(
-    () => events.filter((e) => e.lat != null && e.lng != null),
-    [events]
-  );
+  const pinned = useMemo(() => events.filter(hasValidCoords), [events]);
 
   return (
     <div className="h-full w-full overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">

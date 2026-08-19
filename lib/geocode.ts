@@ -53,12 +53,19 @@ async function runSearch(
     lon: string;
   }>;
 
-  return data.map((item) => ({
-    placeId: item.place_id,
-    displayName: item.display_name,
-    lat: parseFloat(item.lat),
-    lng: parseFloat(item.lon),
-  }));
+  // Nominatim's lat/lon are normally well-formed, but a malformed or
+  // missing value would otherwise become NaN here and flow straight into
+  // an event's saved coordinates — Leaflet throws on NaN, which crashes
+  // the map (and, since nothing catches it, the whole page). Drop any
+  // candidate that isn't a real usable coordinate instead.
+  return data
+    .map((item) => ({
+      placeId: item.place_id,
+      displayName: item.display_name,
+      lat: parseFloat(item.lat),
+      lng: parseFloat(item.lon),
+    }))
+    .filter((candidate) => Number.isFinite(candidate.lat) && Number.isFinite(candidate.lng));
 }
 
 export async function searchAddress(
