@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import { CATEGORY_COLORS } from "@/lib/categoryColors";
@@ -34,12 +34,47 @@ function pinIcon(color: string) {
   });
 }
 
-function FitBoundsOnChange({ events }: { events: TripEvent[] }) {
-  const map = useMap();
+// Reads the container's live layout box directly rather than Leaflet's own
+// cached size, so it's accurate no matter when invalidateSize() last ran.
+function hasVisibleContainer(map: L.Map): boolean {
+  const rect = map.getContainer().getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
+// Bumps whenever the map's container is resized — including the
+// display:none -> visible transition when switching back to the mobile
+// Map tab, which is otherwise invisible to a plain effect dependency list.
+function useContainerResizeTick(map: L.Map): number {
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
+    const container = map.getContainer();
+    const observer = new ResizeObserver(() => setTick((t) => t + 1));
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [map]);
+
+  return tick;
+}
+
+function FitBoundsOnChange({ events }: { events: TripEvent[] }) {
+  const map = useMap();
+  const resizeTick = useContainerResizeTick(map);
+
+  useEffect(() => {
+    // A hidden container (behind the mobile Calendar/Map tab switcher) is
+    // 0x0. fitBounds/setView derive a pixel-space transform from the
+    // container size, and Leaflet's own math divides by that size — on a
+    // 0x0 container it produces NaN and throws, crashing the whole page.
+    // Skipping here and re-running via resizeTick once visible again means
+    // the map still ends up showing the right thing, just not while no one
+    // could see it anyway.
+    if (!hasVisibleContainer(map)) return;
+
     const withCoords = events.filter(hasValidCoords);
     if (withCoords.length === 0) return;
+
+    map.invalidateSize();
 
     if (withCoords.length === 1) {
       map.setView([withCoords[0].lat, withCoords[0].lng], 14);
@@ -48,18 +83,24 @@ function FitBoundsOnChange({ events }: { events: TripEvent[] }) {
 
     const bounds = L.latLngBounds(withCoords.map((e) => [e.lat, e.lng]));
     map.fitBounds(bounds, { padding: [32, 32] });
-  }, [events, map]);
+  }, [events, map, resizeTick]);
 
   return null;
 }
 
 function FocusOnSelected({ event }: { event: TripEvent | null }) {
   const map = useMap();
+  const resizeTick = useContainerResizeTick(map);
 
   useEffect(() => {
     if (!event || !hasValidCoords(event)) return;
+    // See the matching guard in FitBoundsOnChange — flyTo's fly-animation
+    // curve divides by the container size, so a hidden (0x0) container
+    // turns this into the exact same NaN crash.
+    if (!hasVisibleContainer(map)) return;
+    map.invalidateSize();
     map.flyTo([event.lat, event.lng], Math.max(map.getZoom(), 15), { duration: 0.6 });
-  }, [event, map]);
+  }, [event, map, resizeTick]);
 
   return null;
 }
